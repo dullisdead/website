@@ -14,16 +14,11 @@ import tailwindcss from "@tailwindcss/vite";
 
 
 const env = loadEnv('', process.cwd(), '');
-
-// https://astro.build/config
-export default defineConfig({
-  //TODO Change url
-  site: 'https://www.exemple.fr',
-
-  output: env.IS_PREVIEW ? "server" : "static",
-
-  integrations: [storyblok({
-      accessToken: env.STORYBLOK_DELIVERY_API_TOKEN,
+const storyblokAccessToken = env.STORYBLOK_DELIVERY_API_TOKEN || env.STORYBLOK_TOKEN || '';
+const storyblokSpaceId = env.STORYBLOK_SPACE_ID || 'your_space_id';
+const storyblokIntegration = storyblokAccessToken
+  ? [storyblok({
+      accessToken: storyblokAccessToken,
       apiOptions: {
         region: 'eu',
       },
@@ -33,7 +28,17 @@ export default defineConfig({
       enableFallbackComponent: true,
       customFallbackComponent: "components/storyblok/Fallback",
       bridge: true,
-    }),sitemap(), favicons()],
+    })]
+  : [];
+
+// https://astro.build/config
+export default defineConfig({
+  //TODO Change url
+  site: 'https://www.exemple.fr',
+
+  output: env.IS_PREVIEW ? "server" : "static",
+
+  integrations: [...storyblokIntegration, sitemap(), favicons()],
 
   adapter: vercel({
     webAnalytics: { enabled: true },
@@ -45,7 +50,7 @@ export default defineConfig({
         {
           protocol: "https",
           hostname: "a.storyblok.com",
-          pathname: `/f/${env.STORYBLOK_SPACE_ID}/**`,
+          pathname: `/f/${storyblokSpaceId}/**`,
         },
       ],
     },
@@ -57,7 +62,7 @@ export default defineConfig({
       {
         protocol: "https",
         hostname: "a.storyblok.com",
-        pathname: `/f/${env.STORYBLOK_SPACE_ID}/**`,
+        pathname: `/f/${storyblokSpaceId}/**`,
       },
     ],
   },

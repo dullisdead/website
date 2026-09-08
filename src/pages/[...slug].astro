@@ -1,88 +1,173 @@
 ---
-import { useStoryblokApi } from "@storyblok/astro"
-import StoryblokComponent from "@storyblok/astro/StoryblokComponent.astro"
 import Layout from "../layouts/Layout.astro"
 
-const storyblokApi = useStoryblokApi()
-const { slug } = Astro.params
+export const prerender = true
 
-// For SSG: Generate static paths for all stories
-export async function getStaticPaths() {
-  const sbApi = useStoryblokApi()
-
-  // Use 'draft' version in preview mode, 'published' otherwise
-  const version = import.meta.env.IS_PREVIEW ? "draft" : "published"
-
-  const { data } = await sbApi.get("cdn/stories", {
-    version,
-    token: import.meta.env.STORYBLOK_TOKEN,
-    per_page: 100
-  })
-
-  // Remove story with slug 'blog/' if it exists, to avoid conflicts with blog listing page
-  let filteredStories = data.stories.filter(
-    (story) => story.full_slug !== "blog/"
-  )
-  // Remove global story global (for configuration purposes only)
-  filteredStories = filteredStories.filter(
-    (story) => story.full_slug !== "global"
-  )
-
-  return filteredStories.map((story) => ({
-    params: {
-      slug:
-        story.full_slug === "home" || story.full_slug === ""
-          ? undefined
-          : story.full_slug
-    },
-    props: { story }
-  }))
-}
-
-let story
-
-if (import.meta.env.IS_PREVIEW) {
-  // SSR mode: fetch on-demand for Storyblok visual editor
-  const storySlug = slug || "home"
-  try {
-    const { data } = await storyblokApi.get(`cdn/stories/${storySlug}`, {
-      version: "draft",
-      token: import.meta.env.STORYBLOK_TOKEN,
-      resolve_links: "url"
-    })
-    story = data.story
-  } catch (error) {
-    console.error("[DEBUG] Storyblok API error:", error.message)
-  }
-} else {
-  // SSG mode: story comes from getStaticPaths props
-  story = Astro.props.story
-}
-// Guard: If story is undefined (e.g., static assets routed through), return 404
-if (!story) {
-  return new Response(null, {
-    status: 404,
-    statusText: "Not found"
-  })
+export function getStaticPaths() {
+  return [{ params: { slug: undefined } }]
 }
 
 const seo = {
-  title: story ? story.content?.title : "Page non trouvée",
-  description: story ? story.content.description : "Page non trouvée",
-  robots: story ? story.content.robots : "all",
-  schema: story ? story.content.schema : null,
-  ogImage:
-    story && story.content.ogImage ? story.content.ogImage.filename : null,
-  ogImageAlt:
-    story && story.content.ogImageAlt
-      ? story.content.ogImageAlt
-      : story.content.ogImage?.alt
-        ? story.content.ogImage?.alt
-        : " ",
-  canonical: story ? story.content.canonical?.url : null
+  title: "Dull is Dead — Le potentiel refuse la banalité.",
+  description:
+    "DiD est l'agence de croissance de marque sélective pour les marques à fort potentiel qui refusent la banalité.",
+  robots: "all",
+  themeColor: "#f5f1e8"
 }
 ---
 
 <Layout seo={seo}>
-  <StoryblokComponent blok={story.content} />
+  <div class="site-shell" data-page>
+    <header class="site-header">
+      <a class="brand-lockup" href="/" aria-label="Dull is Dead, accueil">
+        <img src="/branding/illustration/logo_horizontal_nomargin.svg" alt="Dull is Dead" />
+      </a>
+      <div class="header-meta">
+        <span>Agence de croissance de marque</span>
+        <a href="#candidature" class="header-link">Postuler <span aria-hidden="true">↗</span></a>
+      </div>
+    </header>
+
+    <main id="main-content" class="landing">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="eyebrow reveal">Dull is Dead <span>—</span> chapitre 001</div>
+        <h1 id="hero-title" class="hero-title">
+          Votre marque a du <em><span class="potential-word">potentiel</span>.</em>
+          <span>Notre travail est d'empêcher qu'il meure dans la banalité.</span>
+        </h1>
+        <div class="hero-bottom">
+          <p class="hero-intro reveal">
+            DiD sélectionne les marques ambitieuses, clarifie ce qui les rend différentes et le transforme en croissance mesurable.
+          </p>
+          <a class="button button--ink magnetic" href="#candidature">
+            <span>Votre marque peut postuler</span>
+            <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+        <div class="scroll-note"><span class="scroll-line"></span> Faites défiler. La banalité est en bas.</div>
+      </section>
+
+      <section class="manifesto section-dark" aria-labelledby="manifesto-title">
+        <div class="section-index">
+          <span>01 / manifeste</span>
+          <span class="manifesto-collage" aria-hidden="true">
+            <img src="/branding/illustration/logomark_nomargin.svg" alt="" />
+          </span>
+        </div>
+        <div class="manifesto-copy">
+          <p class="kicker">Le problème n'est pas que votre marque est invisible.</p>
+          <h2 id="manifesto-title">C'est qu'elle ressemble à celles qui le sont déjà.</h2>
+          <p class="manifesto-detail">La banalité ne fait pas de bruit. Elle rend une marque interchangeable, puis oubliable. Nous refusons cette mort lente.</p>
+          <a href="#methode" class="text-link">Voir comment on attaque <span>↘</span></a>
+        </div>
+      </section>
+
+      <section id="methode" class="method section-cream" aria-labelledby="method-title">
+        <div class="section-index">02 / méthode</div>
+        <div class="method-heading">
+          <p class="kicker">Une équipe courte. Une exigence longue.</p>
+          <h2 id="method-title">On ne vend pas de prestation.<br /><em>On choisit des marques.</em></h2>
+        </div>
+        <div class="method-grid">
+          <article class="method-card">
+            <span class="card-number">01</span>
+            <h3>Clarifier</h3>
+            <p>Positionnement, messages, baseline. On trouve ce qui mérite d'être défendu.</p>
+          </article>
+          <article class="method-card method-card--accent">
+            <span class="card-number">02</span>
+            <h3>Marquer</h3>
+            <p>Storytelling, design, site, contenus. On transforme la différence en système visible.</p>
+          </article>
+          <article class="method-card">
+            <span class="card-number">03</span>
+            <h3>Mesurer</h3>
+            <p>Traction, conversion, préférence. Le fixe est minimal. L'upside suit la valeur créée.</p>
+          </article>
+        </div>
+        <div class="image-strip" aria-label="Exemples visuels de l'univers Dull is Dead">
+          <img src="/branding/illustration/ex1.jpg" alt="" />
+          <img src="/branding/illustration/ex3.jpg" alt="" />
+          <img src="/branding/illustration/ex5.jpg" alt="" />
+        </div>
+      </section>
+
+      <section class="team section-yellow" aria-labelledby="team-title">
+        <div class="section-index">03 / collectif</div>
+        <div class="team-copy">
+          <p class="kicker">Quatre partenaires. Aucun bruit.</p>
+          <h2 id="team-title">La stratégie ne sert à rien si elle reste dans un deck.</h2>
+        </div>
+        <div class="team-list">
+          <div><span>01</span><strong>Manon</strong><small>SEO & rédaction</small><p>Elle transforme les angles justes en mots que les moteurs comme les humains ont envie de suivre.</p></div>
+          <div><span>02</span><strong>Camille</strong><small>Storytelling de marque</small><p>Elle donne une structure claire aux idées fortes pour qu'elles deviennent une histoire mémorable.</p></div>
+          <div><span>03</span><strong>Véronique</strong><small>Communication & activation</small><p>Elle fait sortir la marque du discours et l'inscrit dans des prises de parole qui comptent.</p></div>
+          <div><span>04</span><strong>Julien</strong><small>Design & développement</small><p>Il transforme la stratégie en expériences visibles, rapides et impossibles à confondre.</p></div>
+        </div>
+      </section>
+
+      <section id="candidature" class="apply section-red" aria-labelledby="apply-title">
+        <div class="section-index">04 / candidature</div>
+        <div class="apply-content">
+          <p class="kicker">Les marques candidatent. DiD sélectionne.</p>
+          <h2 id="apply-title">Votre marque mérite-t-elle de refuser la banalité&nbsp;?</h2>
+          <p>Expliquez-nous ce que vous construisez, ce qui bloque et où vous voulez aller. Nous lisons les marques, pas les formulaires.</p>
+          <a class="button button--light magnetic" href="mailto:bonjour@dullisdead.com?subject=Candidature%20DiD">
+            <span>Ouvrir une conversation</span>
+            <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+        <div class="apply-note">Pas de brief de 40 pages.<br />Pas de pitch générique.</div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>© 2026 Dull is Dead</span>
+      <span>Le potentiel refuse la banalité.</span>
+      <a href="mailto:bonjour@dullisdead.com">bonjour@dullisdead.com</a>
+    </footer>
+  </div>
 </Layout>
+
+<script>
+  const page = document.querySelector("[data-page]")
+  const hero = document.querySelector(".hero")
+  const revealItems = document.querySelectorAll(".reveal")
+
+  const updatePatternParallax = () => {
+    const scrollProgress = Math.min(window.scrollY / Math.max(hero?.offsetHeight || 1, 1), 1)
+    hero?.style.setProperty("--pattern-x", `${scrollProgress * -24}px`)
+    hero?.style.setProperty("--pattern-y", `${scrollProgress * -120}px`)
+  }
+
+  window.addEventListener("scroll", updatePatternParallax, { passive: true })
+  updatePatternParallax()
+
+  window.addEventListener("load", () => {
+    page?.classList.add("is-loaded")
+    revealItems.forEach((item, index) => {
+      item.animate(
+        [{ opacity: 0, transform: "translateY(18px)" }, { opacity: 1, transform: "translateY(0)" }],
+        { duration: 800, delay: 250 + index * 100, easing: "cubic-bezier(.22,1,.36,1)", fill: "forwards" }
+      )
+    })
+  })
+
+  document.querySelectorAll(".magnetic").forEach((button) => {
+    button.addEventListener("pointermove", (event) => {
+      const bounds = button.getBoundingClientRect()
+      const x = (event.clientX - bounds.left - bounds.width / 2) * 0.14
+      const y = (event.clientY - bounds.top - bounds.height / 2) * 0.14
+      button.style.transform = `translate(${x}px, ${y}px)`
+    })
+    button.addEventListener("pointerleave", () => {
+      button.style.transform = ""
+    })
+  })
+
+  const observer = new IntersectionObserver(
+    (entries) => entries.forEach((entry) => entry.isIntersecting && entry.target.classList.add("in-view")),
+    { threshold: 0.16 }
+  )
+  document.querySelectorAll(".method-card, .team-list > div, .manifesto-copy, .apply-content").forEach((element) => observer.observe(element))
+</script>
